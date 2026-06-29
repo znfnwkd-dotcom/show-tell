@@ -60,14 +60,19 @@
 
   /* ── STAGE SCREEN ── */
   #screen-stage {
-    padding: 0; background: transparent;
+    padding: 0; background: #000;
     display: flex; flex-direction: column;
-    justify-content: flex-start; align-items: stretch;
+    justify-content: center; align-items: center;
+  }
+  .stage-wrap {
+    position: relative;
+    width: min(100vw, calc(100vh * 9 / 16));
+    height: min(100vh, calc(100vw * 16 / 9));
+    overflow: hidden;
+    border-radius: 0;
   }
   .stage-scene {
-    flex: 1; position: relative; overflow: hidden;
-    border-radius: 0 0 40px 40px;
-    min-height: 200px;
+    position: absolute; inset: 0;
   }
   .stage-scene > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
   .stage-bg { display: block; }
@@ -115,50 +120,57 @@
     50%      { transform: translateX(-50%) rotate(5deg); }
   }
 
-  /* ── LYRICS BAR ── */
-  .lyrics-area {
-    padding: 20px 24px 32px;
-    display: flex; flex-direction: column; align-items: center; gap: 12px;
-    background: white;
-  }
+  /* ── MODE BADGE (overlay) ── */
   .mode-badge {
-    font-size: .95rem; font-weight: 700; letter-spacing: .05em;
-    padding: 4px 16px; border-radius: 999px; margin-bottom: 4px;
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    z-index: 10;
+    font-size: 1rem; font-weight: 700; letter-spacing: .05em;
+    padding: 6px 20px; border-radius: 999px;
   }
-  .mode-badge.full    { background: #EDE0FF; color: #7B4FD6; }
-  .mode-badge.karaoke { background: #FFF0DC; color: #D4800A; }
+  .mode-badge.full    { background: rgba(237,224,255,.92); color: #7B4FD6; }
+  .mode-badge.karaoke { background: rgba(255,240,220,.92); color: #D4800A; }
 
+  /* ── PROGRESS DOTS (overlay) ── */
+  .progress-dots {
+    position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
+    z-index: 10;
+    display: flex; gap: 10px; justify-content: center;
+  }
+
+  /* ── LYRICS OVERLAY ── */
+  .lyrics-area {
+    position: absolute; bottom: 100px; left: 0; right: 0;
+    z-index: 10;
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+    padding: 0 20px;
+  }
   .lyric-wrap {
-    position: relative; width: 100%; max-width: 600px;
+    position: relative; width: 100%;
     overflow: hidden; border-radius: 16px;
-    background: #F8F0FF; min-height: 72px;
+    background: rgba(255,255,255,.18);
+    backdrop-filter: blur(6px);
+    min-height: 64px;
     display: flex; align-items: center; justify-content: center;
   }
   .lyric-text {
-    font-size: clamp(1.3rem, 4.5vw, 1.9rem); font-weight: 700;
+    font-size: clamp(1.4rem, 5vw, 2.2rem); font-weight: 800;
     position: relative; z-index: 2; padding: 14px 20px; text-align: center;
-    color: #444; letter-spacing: .02em;
+    color: white; letter-spacing: .02em;
+    text-shadow: 0 2px 8px rgba(0,0,0,.4);
   }
-  .lyric-text.hidden-text { color: transparent; user-select: none; }
   .lyric-fill {
     position: absolute; inset: 0; z-index: 1;
-    background: linear-gradient(90deg, #C084FC 0%, #E0BBFF 100%);
+    background: linear-gradient(90deg, rgba(192,132,252,.7) 0%, rgba(224,187,255,.5) 100%);
     transform-origin: left; transform: scaleX(0);
     transition: transform .1s linear;
     border-radius: 16px;
   }
-  .hint-btn {
-    font-size: 1rem; color: #C084FC; cursor: pointer;
-    padding: 4px 12px; border-radius: 999px;
-    border: 2px solid #E0BBFF; background: white;
-    font-weight: 700;
-  }
 
-  /* ── CONTROLS ── */
+  /* ── CONTROLS (overlay) ── */
   .controls {
+    position: absolute; bottom: 24px; left: 0; right: 0;
+    z-index: 10;
     display: flex; gap: 16px; justify-content: center;
-    padding: 16px 24px; background: white;
-    border-top: 2px solid #F0E8FF;
   }
 
   /* ── COMPLETE SCREEN ── */
@@ -190,12 +202,7 @@
   .bg-cool   { background: linear-gradient(180deg, #B3E5FC 0%, #E1F5FE 55%, #81D4FA 55%); }
   .bg-thanks { background: linear-gradient(180deg, #FCE4EC 0%, #F8BBD0 50%, #F48FB1 100%); }
 
-  /* ── PROGRESS DOT ── */
-  .progress-dots {
-    display: flex; gap: 10px; justify-content: center; padding: 10px 0;
-    background: white;
-  }
-  .dot { width: 12px; height: 12px; border-radius: 50%; background: #E0D0FF; transition: background .3s; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,.5); transition: background .3s; }
   .dot.active { background: #9B6FE8; }
 
   /* ── FLOATING CLOUDS (decoration) ── */
@@ -247,29 +254,30 @@
      SCREEN 3 & 4: STAGE
 ══════════════════════════════════ -->
 <div id="screen-stage" class="screen">
-  <!-- Scene area -->
-  <div class="stage-scene" id="stage-scene">
-    <!-- background SVG injected by JS -->
-    <!-- character injected by JS -->
-  </div>
+  <div class="stage-wrap">
+    <!-- Scene (background + character injected by JS) -->
+    <div class="stage-scene" id="stage-scene"></div>
 
-  <!-- Progress dots -->
-  <div class="progress-dots" id="progress-dots"></div>
+    <!-- Mode badge overlay -->
+    <div class="mode-badge full" id="mode-badge">🎵 노래 모드</div>
 
-  <!-- Lyrics -->
-  <div class="lyrics-area">
-    <div class="mode-badge full" id="mode-badge">🎵 전체 감상</div>
-    <div class="lyric-wrap" id="lyric-wrap">
-      <div class="lyric-fill" id="lyric-fill"></div>
-      <div class="lyric-text" id="lyric-text">준비 중...</div>
+    <!-- Progress dots overlay -->
+    <div class="progress-dots" id="progress-dots"></div>
+
+    <!-- Lyrics overlay -->
+    <div class="lyrics-area">
+      <div class="lyric-wrap" id="lyric-wrap">
+        <div class="lyric-fill" id="lyric-fill"></div>
+        <div class="lyric-text" id="lyric-text">준비 중...</div>
+      </div>
     </div>
-  </div>
 
-  <!-- Controls -->
-  <div class="controls">
-    <button class="btn btn-gray btn-small" onclick="stopAudio();goTo('screen-start')" style="padding:14px 20px">🏠</button>
-    <button class="btn btn-primary" id="play-btn" onclick="togglePlay()" style="min-width:130px">▶ 재생</button>
-    <button class="btn btn-gray btn-small" onclick="restartStage()" style="padding:14px 20px">↺</button>
+    <!-- Controls overlay -->
+    <div class="controls">
+      <button class="btn btn-gray btn-small" onclick="stopAudio();goTo('screen-start')" style="padding:14px 20px;background:rgba(255,255,255,.8)">🏠</button>
+      <button class="btn btn-primary" id="play-btn" onclick="togglePlay()" style="min-width:130px">▶ 재생</button>
+      <button class="btn btn-gray btn-small" onclick="restartStage()" style="padding:14px 20px;background:rgba(255,255,255,.8)">↺</button>
+    </div>
   </div>
 </div>
 
