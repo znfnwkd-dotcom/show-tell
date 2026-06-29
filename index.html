@@ -453,21 +453,22 @@ function charSVG(type, sceneIdx = 0) {
   return `<img class="character-art" src="${characterImageData[idx]}" alt="" draggable="false">`;
 }
 
+const SCENE_IMAGES = [
+  'capcut-assets/backgrounds/scene1_hello_morning.jpg',
+  'capcut-assets/backgrounds/scene2_watermelon_fan.jpg',
+  'capcut-assets/backgrounds/scene3_hot_summer.jpg',
+  'capcut-assets/backgrounds/scene4_stay_cool.jpg',
+  'capcut-assets/backgrounds/scene5_thank_you_sunset.jpg',
+];
+
 function showScene(lineIdx) {
   if (!scriptData) return;
   const scene = document.getElementById('stage-scene');
-  const sceneBg = SCENES[Math.min(lineIdx, SCENES.length-1)];
   const anim = SCENE_ANIMS[Math.min(lineIdx, SCENE_ANIMS.length-1)];
+  const imgSrc = SCENE_IMAGES[Math.min(lineIdx, SCENE_IMAGES.length-1)];
 
-  // Generate background
-  let bgHtml = '';
-  if (lineIdx === 0) bgHtml = sceneSVGs['bg-hello']();
-  else if (lineIdx === 1) bgHtml = sceneSVGs['bg-item'](itemName);
-  else if (lineIdx === 2) bgHtml = sceneSVGs['bg-hot']();
-  else if (lineIdx === 3) bgHtml = sceneSVGs['bg-cool']();
-  else bgHtml = sceneSVGs['bg-thanks']();
-
-  scene.innerHTML = bgHtml + `
+  scene.innerHTML = `
+    <img src="${imgSrc}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
     <div class="stage-char ${anim}" style="z-index:2">
       ${charSVG(selectedChar, lineIdx)}
     </div>`;
