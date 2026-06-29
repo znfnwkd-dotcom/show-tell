@@ -249,7 +249,10 @@
       <rect x="71" y="148" width="22" height="12" rx="5" fill="white"/>
     </svg>
   </div>
-  <button class="btn btn-primary" style="font-size:2rem;padding:24px 60px;" onclick="goToStage()">▶ 시작하기!</button>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;">
+    <button class="btn btn-primary" style="font-size:1.6rem;padding:22px 44px;" onclick="goToStage('full')">🎵 노래 모드</button>
+    <button class="btn btn-orange" style="font-size:1.6rem;padding:22px 44px;" onclick="goToStage('karaoke')">🎤 노래방 모드</button>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════
@@ -373,7 +376,16 @@ document.addEventListener('DOMContentLoaded', () => {
   init();
 });
 
-function goToStage() {
+function goToStage(mode) {
+  stageMode = mode || 'full';
+  const badge = document.getElementById('mode-badge');
+  if (stageMode === 'karaoke') {
+    badge.textContent = '🎤 노래방 모드';
+    badge.className = 'mode-badge karaoke';
+  } else {
+    badge.textContent = '🎵 노래 모드';
+    badge.className = 'mode-badge full';
+  }
   buildStage();
   buildProgressDots();
   showScene(0);
@@ -738,7 +750,7 @@ function tick() {
       showScene(active);
       updateDots(active);
       const lineText = lines[active].text.replace('{item}', itemName);
-      setLyricText(lineText, stageMode === 'karaoke');
+      setLyricText(lineText, false);
     }
   }
 
@@ -761,23 +773,8 @@ function finishMode() {
   if (animFrame) cancelAnimationFrame(animFrame);
   document.getElementById('lyric-fill').style.transform = 'scaleX(1)';
 
-  if (stageMode === 'full') {
-    // Transition to karaoke mode
-    setTimeout(() => {
-      stageMode = 'karaoke';
-      document.getElementById('mode-badge').textContent = '🎤 노래방 모드';
-      document.getElementById('mode-badge').className = 'mode-badge karaoke';
-      document.getElementById('hint-btn').style.display = 'inline-flex';
-      currentLine = -1;
-      showScene(0);
-      setLyricText('', false);
-      document.getElementById('lyric-fill').style.transform = 'scaleX(0)';
-      beginPlay();
-    }, 800);
-  } else {
-    // Complete
-    setTimeout(() => showComplete(), 600);
-  }
+  // 모드 상관없이 끝나면 완료 화면으로
+  setTimeout(() => showComplete(), 600);
 }
 
 function setLyricText(text, hidden) {
