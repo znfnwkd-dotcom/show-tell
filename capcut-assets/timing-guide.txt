@@ -1,0 +1,26 @@
+CapCut timing guide
+===================
+
+Audio:
+1. Import audio/background.mp3 first.
+2. Put it at 00:00 on the timeline.
+
+Scene layers:
+1. 00.00s - 05.00s | background: backgrounds/scene1_hello_morning.jpg | character: characters-transparent/char1_hello_wave.png
+2. 05.00s - 09.00s | background: backgrounds/scene2_watermelon_fan.jpg | character: characters-transparent/char2_show_watermelon_fan.png
+3. 09.00s - 14.00s | background: backgrounds/scene3_hot_summer.jpg | character: characters-transparent/char3_hot_fanning.png
+4. 14.00s - 18.00s | background: backgrounds/scene4_stay_cool.jpg | character: characters-transparent/char4_stay_cool_breeze.png
+5. 18.00s - 22.00s | background: backgrounds/scene5_thank_you_sunset.jpg | character: characters-transparent/char5_thank_you_bow.png
+
+Caption timing:
+1. 04.00s - 05.00s | Hello!
+2. 07.00s - 09.00s | This is my watermelon fan.
+3. 11.00s - 14.00s | The weather is hot in summer.
+4. 15.00s - 18.00s | Stay cool with my fan!
+5. 19.00s - 22.00s | Thank you.
+
+Suggested CapCut character motion:
+- Put each transparent PNG above its matching background.
+- Apply a gentle loop animation: Swing / Float / Breathe if available.
+- Or keyframe manually: start scale 100%, middle 104%, end 100%; rotation -2 to +2 degrees.
+- Scene 2-4 can use slightly more side-to-side motion to make the fan feel active.
