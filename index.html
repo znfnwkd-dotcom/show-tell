@@ -572,16 +572,10 @@ function tick() {
     }
   }
 
-  // 노래방 색 채우기: lyricStart/lyricEnd 기준
-  if (active >= 0) {
-    const line = lines[active];
-    const ls = line.lyricStart != null ? line.lyricStart : line.start;
-    const le = line.lyricEnd   != null ? line.lyricEnd   : line.end;
-    let progress = 0;
-    if (t >= le) progress = 1;
-    else if (t >= ls) progress = (t - ls) / (le - ls);
-    document.getElementById('lyric-fill').style.transform = `scaleX(${Math.min(progress, 1)})`;
-  }
+  // 전체 진행도로 게이지 채우기
+  const totalDuration = lines[lines.length - 1].end;
+  const overallProgress = Math.min(t / totalDuration, 1);
+  document.getElementById('lyric-fill').style.transform = `scaleX(${overallProgress})`;
 
   animFrame = requestAnimationFrame(tick);
 }
