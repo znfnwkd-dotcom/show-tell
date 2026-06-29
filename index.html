@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Show & Tell Practice 🌟</title>
+<style>
+  :root {
+    --sky: #87CEEB;
+    --sun: #FFD700;
+    --green: #5CB85C;
+    --pink: #FF8FAB;
+    --purple: #C084FC;
+    --orange: #FFA552;
+    --white: #FFFDF7;
+    --shadow: rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(160deg, #FFF9F0 0%, #FFF0F8 100%);
+    min-height: 100vh;
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    transition: opacity .4s ease, transform .4s ease;
+    opacity: 0; pointer-events: none; transform: scale(.97);
+  }
+  .screen.active {
+    opacity: 1; pointer-events: all; transform: scale(1);
+  }
+
+  /* ── CHARACTER SELECT ── */
+  #screen-char h1 {
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    color: #7B4FD6;
+    text-shadow: 2px 3px 0 #E4C7FF;
+    margin-bottom: 8px; text-align: center;
+  }
+  #screen-char p.sub {
+    font-size: 1.3rem; color: #999; margin-bottom: 36px;
+  }
+  .char-row {
+    display: flex; gap: 36px; justify-content: center; flex-wrap: wrap;
+  }
+  .char-card {
+    background: white; border-radius: 32px;
+    padding: 28px 32px;
+    box-shadow: 0 6px 24px var(--shadow);
+    cursor: pointer; transition: transform .2s, box-shadow .2s;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    border: 4px solid transparent;
+    min-width: 170px;
+  }
+  .char-card:hover, .char-card:active { transform: scale(1.07); }
+  .char-card.selected { border-color: var(--purple); box-shadow: 0 6px 24px #C084FC55; }
+  .char-card svg { width: 130px; height: 170px; }
+  .char-label { font-size: 1.4rem; font-weight: 700; color: #555; }
+
+  /* ── ITEM INPUT ── */
+  #screen-item h2 {
+    font-size: clamp(1.6rem, 5vw, 2.6rem);
+    color: #7B4FD6; margin-bottom: 12px; text-align: center;
+  }
+  #screen-item p.hint { font-size: 1.1rem; color: #aaa; margin-bottom: 28px; }
+  .item-box {
+    background: white; border-radius: 28px;
+    padding: 32px 36px; width: 100%; max-width: 500px;
+    box-shadow: 0 6px 24px var(--shadow);
+    display: flex; flex-direction: column; gap: 20px; align-items: center;
+  }
+  .item-box input {
+    width: 100%; font-size: 2rem; padding: 18px 24px;
+    border: 3px solid #E0D0FF; border-radius: 18px;
+    outline: none; text-align: center; color: #444;
+    transition: border-color .2s;
+  }
+  .item-box input:focus { border-color: var(--purple); }
+  .preview-line {
+    font-size: 1.2rem; color: #888;
+    background: #F8F0FF; padding: 12px 20px; border-radius: 14px;
+    width: 100%; text-align: center; min-height: 48px;
+  }
+  .preview-line span { color: var(--purple); font-weight: 700; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 20px 40px; border: none; border-radius: 999px;
+    font-size: 1.5rem; font-weight: 700; cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+    box-shadow: 0 5px 16px var(--shadow);
+    touch-action: manipulation; user-select: none;
+  }
+  .btn:active { transform: scale(.95); }
+  .btn-primary { background: linear-gradient(135deg, #9B6FE8, #C084FC); color: white; }
+  .btn-green   { background: linear-gradient(135deg, #4CAF50, #81C784); color: white; }
+  .btn-orange  { background: linear-gradient(135deg, #FF8C42, #FFB347); color: white; }
+  .btn-gray    { background: #F0F0F0; color: #666; }
+  .btn-small   { padding: 14px 28px; font-size: 1.2rem; }
+
+  /* ── STAGE SCREEN ── */
+  #screen-stage {
+    padding: 0; background: transparent;
+    display: flex; flex-direction: column;
+  }
+  .stage-scene {
+    flex: 1; position: relative; overflow: hidden;
+    border-radius: 0 0 40px 40px;
+  }
+  .stage-scene svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  .stage-char {
+    position: absolute; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: min(220px, 35vw);
+    transition: transform .5s ease;
+  }
+  .stage-char.wave { animation: waveAnim 1s ease infinite; }
+  .stage-char.bow  { animation: bowAnim 1s ease infinite; }
+  .stage-char.fan  { animation: fanAnim 1.2s ease infinite; }
+
+  @keyframes waveAnim {
+    0%,100% { transform: translateX(-50%) rotate(-3deg); }
+    50%      { transform: translateX(-50%) rotate(3deg); }
+  }
+  @keyframes bowAnim {
+    0%,60%,100% { transform: translateX(-50%) translateY(0); }
+    30%          { transform: translateX(-50%) translateY(10px); }
+  }
+  @keyframes fanAnim {
+    0%,100% { transform: translateX(-50%) rotate(-5deg); }
+    50%      { transform: translateX(-50%) rotate(5deg); }
+  }
+
+  /* ── LYRICS BAR ── */
+  .lyrics-area {
+    padding: 20px 24px 32px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    background: white;
+  }
+  .mode-badge {
+    font-size: .95rem; font-weight: 700; letter-spacing: .05em;
+    padding: 4px 16px; border-radius: 999px; margin-bottom: 4px;
+  }
+  .mode-badge.full    { background: #EDE0FF; color: #7B4FD6; }
+  .mode-badge.karaoke { background: #FFF0DC; color: #D4800A; }
+
+  .lyric-wrap {
+    position: relative; width: 100%; max-width: 600px;
+    overflow: hidden; border-radius: 16px;
+    background: #F8F0FF; min-height: 72px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lyric-text {
+    font-size: clamp(1.3rem, 4.5vw, 1.9rem); font-weight: 700;
+    position: relative; z-index: 2; padding: 14px 20px; text-align: center;
+    color: #444; letter-spacing: .02em;
+  }
+  .lyric-text.hidden-text { color: transparent; user-select: none; }
+  .lyric-fill {
+    position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(90deg, #C084FC 0%, #E0BBFF 100%);
+    transform-origin: left; transform: scaleX(0);
+    transition: transform .1s linear;
+    border-radius: 16px;
+  }
+  .hint-btn {
+    font-size: 1rem; color: #C084FC; cursor: pointer;
+    padding: 4px 12px; border-radius: 999px;
+    border: 2px solid #E0BBFF; background: white;
+    font-weight: 700;
+  }
+
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex; gap: 16px; justify-content: center;
+    padding: 16px 24px; background: white;
+    border-top: 2px solid #F0E8FF;
+  }
+
+  /* ── COMPLETE SCREEN ── */
+  #screen-complete {
+    gap: 24px;
+    background: linear-gradient(160deg, #FFF9F0 0%, #F0F0FF 100%);
+  }
+  .confetti-wrap { font-size: 3.5rem; animation: pop .6s ease; }
+  @keyframes pop { 0% { transform: scale(0) rotate(-20deg); } 80% { transform: scale(1.15) rotate(5deg); } 100% { transform: scale(1) rotate(0); } }
+  #screen-complete h2 { font-size: clamp(1.8rem,6vw,3rem); color: #7B4FD6; text-align: center; }
+  #screen-complete p  { font-size: 1.1rem; color: #888; text-align: center; }
+
+  .suno-box {
+    background: white; border-radius: 24px; padding: 24px;
+    box-shadow: 0 4px 20px var(--shadow); max-width: 540px; width: 100%;
+  }
+  .suno-box label { font-size: .95rem; color: #aaa; font-weight: 600; margin-bottom: 8px; display: block; }
+  .suno-prompt {
+    background: #F8F5FF; border-radius: 14px; padding: 16px;
+    font-size: 1rem; color: #555; line-height: 1.6;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .suno-actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+
+  /* ── SCENE BACKGROUNDS ── */
+  .bg-hello { background: linear-gradient(180deg, #87CEEB 0%, #C8F0FF 55%, #8BC34A 55%); }
+  .bg-item   { background: linear-gradient(180deg, #87CEEB 0%, #FFFDE7 50%, #A5D6A7 50%); }
+  .bg-hot    { background: linear-gradient(180deg, #FFF176 0%, #FFCC80 50%, #FFA726 100%); }
+  .bg-cool   { background: linear-gradient(180deg, #B3E5FC 0%, #E1F5FE 55%, #81D4FA 55%); }
+  .bg-thanks { background: linear-gradient(180deg, #FCE4EC 0%, #F8BBD0 50%, #F48FB1 100%); }
+
+  /* ── PROGRESS DOT ── */
+  .progress-dots {
+    display: flex; gap: 10px; justify-content: center; padding: 10px 0;
+    background: white;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: #E0D0FF; transition: background .3s; }
+  .dot.active { background: #9B6FE8; }
+
+  /* ── FLOATING CLOUDS (decoration) ── */
+  .clouds { position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; }
+
+  /* ── WIND LINES ── */
+  @keyframes windLine {
+    0%   { transform: translateX(-120%) scaleX(0); opacity: 0; }
+    30%  { opacity: 1; transform: translateX(-30%) scaleX(1); }
+    100% { transform: translateX(120%) scaleX(.5); opacity: 0; }
+  }
+  .wind-line {
+    position: absolute; height: 4px; border-radius: 4px;
+    background: linear-gradient(90deg, transparent, #AEE6FF, transparent);
+    width: 120px; animation: windLine 1.2s ease infinite;
+  }
+
+  /* ── SUN RAYS ── */
+  @keyframes pulse { 0%,100% { opacity: .7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+  .sun-glow { animation: pulse 2s ease infinite; }
+
+  /* ── SWEAT DROPS ── */
+  @keyframes dropFall { 0% { transform: translateY(-10px); opacity: 1; } 100% { transform: translateY(30px); opacity: 0; } }
+  .sweat { animation: dropFall 1.2s ease infinite; }
+
+  /* ── STARS ON COMPLETE ── */
+  .star { display: inline-block; animation: spinStar 3s linear infinite; }
+  @keyframes spinStar { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     SCREEN 1: CHARACTER SELECT
+══════════════════════════════════ -->
+<div id="screen-char" class="screen active">
+  <h1>🌟 Show & Tell</h1>
+  <p class="sub">캐릭터를 골라봐!</p>
+  <div class="char-row">
+    <div class="char-card" id="card-boy" onclick="selectChar('boy')">
+      <!-- BOY SVG -->
+      <svg viewBox="0 0 130 170" xmlns="http://www.w3.org/2000/svg">
+        <!-- hair -->
+        <ellipse cx="65" cy="44" rx="32" ry="26" fill="#4A2C0A"/>
+        <!-- face -->
+        <ellipse cx="65" cy="58" rx="28" ry="26" fill="#FDDBB4"/>
+        <!-- hair top detail -->
+        <rect x="35" y="30" width="60" height="18" rx="10" fill="#4A2C0A"/>
+        <!-- eyes -->
+        <circle cx="55" cy="56" r="4.5" fill="#2C1A0A"/>
+        <circle cx="75" cy="56" r="4.5" fill="#2C1A0A"/>
+        <circle cx="56.5" cy="54.5" r="1.5" fill="white"/>
+        <circle cx="76.5" cy="54.5" r="1.5" fill="white"/>
+        <!-- blush -->
+        <ellipse cx="48" cy="65" rx="6" ry="3.5" fill="#FFAAB8" opacity=".5"/>
+        <ellipse cx="82" cy="65" rx="6" ry="3.5" fill="#FFAAB8" opacity=".5"/>
+        <!-- smile -->
+        <path d="M56 70 Q65 78 74 70" stroke="#C07050" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- ears -->
+        <ellipse cx="37" cy="60" rx="6" ry="7" fill="#FDDBB4"/>
+        <ellipse cx="93" cy="60" rx="6" ry="7" fill="#FDDBB4"/>
+        <!-- body (shirt - blue) -->
+        <rect x="30" y="82" width="70" height="62" rx="14" fill="#5B8DEF"/>
+        <!-- collar -->
+        <path d="M55 82 L65 95 L75 82" fill="white" opacity=".9"/>
+        <!-- arms -->
+        <rect x="10" y="84" width="22" height="50" rx="11" fill="#5B8DEF"/>
+        <rect x="98" y="84" width="22" height="50" rx="11" fill="#5B8DEF"/>
+        <!-- hands -->
+        <ellipse cx="21" cy="138" rx="11" ry="10" fill="#FDDBB4"/>
+        <ellipse cx="109" cy="138" rx="11" ry="10" fill="#FDDBB4"/>
+        <!-- pants -->
+        <rect x="30" y="136" width="30" height="34" rx="10" fill="#3A5BA0"/>
+        <rect x="70" y="136" width="30" height="34" rx="10" fill="#3A5BA0"/>
+        <!-- shoes -->
+        <ellipse cx="45" cy="170" rx="17" ry="9" fill="#333"/>
+        <ellipse cx="85" cy="170" rx="17" ry="9" fill="#333"/>
+      </svg>
+      <span class="char-label">남자아이 👦</span>
+    </div>
+
+    <div class="char-card" id="card-girl" onclick="selectChar('girl')">
+      <!-- GIRL SVG -->
+      <svg viewBox="0 0 130 170" xmlns="http://www.w3.org/2000/svg">
+        <!-- hair back (pigtails base) -->
+        <ellipse cx="65" cy="44" rx="33" ry="27" fill="#8B3A00"/>
+        <!-- pigtails -->
+        <ellipse cx="28" cy="52" rx="10" ry="20" fill="#8B3A00" transform="rotate(-15 28 52)"/>
+        <ellipse cx="102" cy="52" rx="10" ry="20" fill="#8B3A00" transform="rotate(15 102 52)"/>
+        <!-- ribbons -->
+        <ellipse cx="33" cy="40" rx="9" ry="5" fill="#FF6B9D" transform="rotate(-20 33 40)"/>
+        <ellipse cx="97" cy="40" rx="9" ry="5" fill="#FF6B9D" transform="rotate(20 97 40)"/>
+        <!-- face -->
+        <ellipse cx="65" cy="59" rx="27" ry="25" fill="#FDDBB4"/>
+        <!-- eyes with lashes -->
+        <circle cx="55" cy="57" r="4.5" fill="#2C1A0A"/>
+        <circle cx="75" cy="57" r="4.5" fill="#2C1A0A"/>
+        <circle cx="56.5" cy="55.5" r="1.5" fill="white"/>
+        <circle cx="76.5" cy="55.5" r="1.5" fill="white"/>
+        <!-- lashes -->
+        <line x1="51" y1="53" x2="49" y2="50" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="55" y1="52" x2="54" y2="49" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="59" y1="53" x2="60" y2="50" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="71" y1="53" x2="70" y2="50" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="75" y1="52" x2="75" y2="49" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="79" y1="53" x2="81" y2="50" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- blush -->
+        <ellipse cx="47" cy="66" rx="6" ry="3.5" fill="#FFB6C1" opacity=".65"/>
+        <ellipse cx="83" cy="66" rx="6" ry="3.5" fill="#FFB6C1" opacity=".65"/>
+        <!-- smile -->
+        <path d="M56 72 Q65 80 74 72" stroke="#C07050" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- ears -->
+        <ellipse cx="38" cy="61" rx="6" ry="7" fill="#FDDBB4"/>
+        <ellipse cx="92" cy="61" rx="6" ry="7" fill="#FDDBB4"/>
+        <!-- dress (pink) -->
+        <path d="M28 84 Q28 144 65 148 Q102 144 102 84 L93 80 L65 88 L37 80 Z" fill="#FF8FAB"/>
+        <!-- dress top -->
+        <rect x="37" y="79" width="56" height="22" rx="12" fill="#FF8FAB"/>
+        <!-- collar lace -->
+        <path d="M48 83 Q55 90 65 87 Q75 90 82 83" stroke="white" stroke-width="2" fill="none"/>
+        <!-- arms -->
+        <rect x="12" y="82" width="27" height="48" rx="13" fill="#FF8FAB"/>
+        <rect x="91" y="82" width="27" height="48" rx="13" fill="#FF8FAB"/>
+        <!-- hands -->
+        <ellipse cx="25" cy="134" rx="12" ry="10" fill="#FDDBB4"/>
+        <ellipse cx="105" cy="134" rx="12" ry="10" fill="#FDDBB4"/>
+        <!-- shoes -->
+        <ellipse cx="48" cy="162" rx="16" ry="9" fill="#FF5092"/>
+        <ellipse cx="82" cy="162" rx="16" ry="9" fill="#FF5092"/>
+        <!-- shoe strap -->
+        <rect x="38" y="155" width="20" height="5" rx="2.5" fill="#FF5092"/>
+        <rect x="72" y="155" width="20" height="5" rx="2.5" fill="#FF5092"/>
+        <!-- socks -->
+        <rect x="37" y="148" width="22" height="12" rx="5" fill="white"/>
+        <rect x="71" y="148" width="22" height="12" rx="5" fill="white"/>
+      </svg>
+      <span class="char-label">여자아이 👧</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     SCREEN 2: ITEM INPUT
+══════════════════════════════════ -->
+<div id="screen-item" class="screen">
+  <h2>🎁 오늘 Show & Tell 아이템은?</h2>
+  <p class="hint">영어로 입력해봐! (예: watermelon, fan, apple)</p>
+  <div class="item-box">
+    <input id="item-input" type="text" placeholder="watermelon" autocomplete="off" autocapitalize="none" spellcheck="false"/>
+    <div class="preview-line" id="preview-line">This is my <span id="preview-item">watermelon</span> fan.</div>
+    <button class="btn btn-primary" onclick="startStage()">▶ 시작하기!</button>
+  </div>
+  <br>
+  <button class="btn btn-gray btn-small" onclick="goTo('screen-char')">← 뒤로</button>
+</div>
+
+<!-- ══════════════════════════════════
+     SCREEN 3 & 4: STAGE
+══════════════════════════════════ -->
+<div id="screen-stage" class="screen">
+  <!-- Scene area -->
+  <div class="stage-scene" id="stage-scene">
+    <!-- background SVG injected by JS -->
+    <!-- character injected by JS -->
+  </div>
+
+  <!-- Progress dots -->
+  <div class="progress-dots" id="progress-dots"></div>
+
+  <!-- Lyrics -->
+  <div class="lyrics-area">
+    <div class="mode-badge full" id="mode-badge">🎵 전체 감상</div>
+    <div class="lyric-wrap" id="lyric-wrap">
+      <div class="lyric-fill" id="lyric-fill"></div>
+      <div class="lyric-text" id="lyric-text">준비 중...</div>
+    </div>
+    <button class="hint-btn" id="hint-btn" style="display:none" onclick="playHint()">모르겠으면 눌러봐! 👆</button>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn btn-gray btn-small" onclick="goTo('screen-char')" style="padding:14px 20px">🏠</button>
+    <button class="btn btn-primary" id="play-btn" onclick="togglePlay()" style="min-width:130px">▶ 재생</button>
+    <button class="btn btn-gray btn-small" onclick="restartStage()" style="padding:14px 20px">↺</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     SCREEN 5: COMPLETE
+══════════════════════════════════ -->
+<div id="screen-complete" class="screen">
+  <div class="confetti-wrap">🎉🌟🎊</div>
+  <h2>완전 잘했어! 👏</h2>
+  <p>Suno AI로 나만의 노래를 만들어봐!</p>
+
+  <div class="suno-box">
+    <label>🎵 Suno AI 프롬프트 (복사해서 붙여넣기!)</label>
+    <div class="suno-prompt" id="suno-prompt-text">로딩 중...</div>
+    <div class="suno-actions">
+      <button class="btn btn-green btn-small" onclick="copyPrompt()">📋 복사하기</button>
+      <button class="btn btn-orange btn-small" onclick="openSuno()">🎸 Suno 열기</button>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="restartAll()" style="margin-top:8px">🔄 처음부터 다시!</button>
+</div>
+
+<audio id="audio-bg" preload="auto"></audio>
+<audio id="audio-kara" preload="auto"></audio>
+
+<script>
+// ══════════════════════════════════
+// STATE
+// ══════════════════════════════════
+let scriptData = null;
+let selectedChar = 'boy';
+let itemName = 'watermelon';
+let stageMode = 'full';   // 'full' | 'karaoke'
+let isPlaying = false;
+let currentLine = -1;
+let animFrame = null;
+let audioStartTime = 0;
+let audioPauseOffset = 0;
+let audioCtx = null;
+
+const SCENES = ['bg-hello','bg-item','bg-hot','bg-cool','bg-thanks'];
+const SCENE_ANIMS = ['wave','fan','fan','fan','bow'];
+const SCENE_LABELS = ['Hello!','item','hot','cool','thanks'];
+
+// ══════════════════════════════════
+// INIT
+// ══════════════════════════════════
+async function init() {
+  try {
+    const r = await fetch('script.json');
+    scriptData = await r.json();
+    itemName = scriptData.item || 'watermelon';
+    document.getElementById('item-input').value = itemName;
+    updatePreview();
+  } catch(e) {
+    // fallback
+    scriptData = {
+      week:"1주차", item:"watermelon",
+      lines:[
+        {text:"Hello!", start:0, end:3},
+        {text:"This is my {item} fan.", start:3, end:8},
+        {text:"The weather is hot in summer.", start:8, end:13},
+        {text:"Stay cool with my fan!", start:13, end:18},
+        {text:"Thank you.", start:18, end:22}
+      ],
+      sunoPrompt:"A cheerful children's song about a {item} fan. Ukulele, glockenspiel, 60 BPM, kindergarten style."
+    };
+    itemName = 'watermelon';
+    updatePreview();
+  }
+}
+
+// ══════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════
+function goTo(id) {
+  stopAudio();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ══════════════════════════════════
+// CHAR SELECT
+// ══════════════════════════════════
+function selectChar(c) {
+  selectedChar = c;
+  document.querySelectorAll('.char-card').forEach(el => el.classList.remove('selected'));
+  document.getElementById('card-' + c).classList.add('selected');
+  setTimeout(() => goTo('screen-item'), 300);
+}
+
+// ══════════════════════════════════
+// ITEM INPUT
+// ══════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  const inp = document.getElementById('item-input');
+  inp.addEventListener('input', updatePreview);
+  inp.addEventListener('keydown', e => { if(e.key==='Enter') startStage(); });
+  updatePreview();
+});
+
+function updatePreview() {
+  const val = document.getElementById('item-input').value.trim() || 'watermelon';
+  document.getElementById('preview-item').textContent = val;
+}
+
+function startStage() {
+  itemName = document.getElementById('item-input').value.trim() || 'watermelon';
+  stageMode = 'full';
+  buildStage();
+  goTo('screen-stage');
+  setupProgressDots();
+  setTimeout(() => beginPlay(), 400);
+}
+
+// ══════════════════════════════════
+// STAGE BUILD
+// ══════════════════════════════════
+function buildStage() {
+  showScene(0);
+  buildProgressDots();
+}
+
+function setupProgressDots() { buildProgressDots(); }
+
+function buildProgressDots() {
+  const c = document.getElementById('progress-dots');
+  c.innerHTML = '';
+  if (!scriptData) return;
+  scriptData.lines.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot'; d.id = 'dot-' + i;
+    c.appendChild(d);
+  });
+}
+
+// ── SCENE BACKGROUNDS ──
+const sceneSVGs = {
+  'bg-hello': () => `
+    <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+      <!-- sky -->
+      <rect width="400" height="300" fill="#87CEEB"/>
+      <!-- ground -->
+      <rect y="195" width="400" height="105" fill="#8BC34A"/>
+      <!-- sun -->
+      <circle cx="60" cy="55" r="38" fill="#FFD700" class="sun-glow"/>
+      ${sunRays(60,55,38)}
+      <!-- clouds -->
+      ${cloud(200,50,1.1)} ${cloud(310,80,.85)} ${cloud(90,90,.7)}
+      <!-- flowers -->
+      ${flower(80,200)} ${flower(130,195)} ${flower(320,205)} ${flower(360,198)}
+      <!-- hello text bubble -->
+      <rect x="195" y="30" width="150" height="52" rx="20" fill="white" opacity=".9"/>
+      <polygon points="210,82 220,82 215,96" fill="white" opacity=".9"/>
+      <text x="270" y="64" text-anchor="middle" font-size="26" font-weight="bold" fill="#7B4FD6">Hello! 👋</text>
+    </svg>`,
+
+  'bg-item': (item) => `
+    <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+      <rect width="400" height="300" fill="#87CEEB"/>
+      <rect y="185" width="400" height="115" fill="#A5D6A7"/>
+      ${cloud(80,50,.9)} ${cloud(290,60,1.0)} ${cloud(180,30,.75)}
+      <circle cx="340" cy="55" r="30" fill="#FFD700" class="sun-glow"/>
+      ${sunRays(340,55,30)}
+      <!-- item fan (big watermelon fan shape) -->
+      <ellipse cx="200" cy="120" rx="70" ry="55" fill="#66BB6A" opacity=".3"/>
+      <text x="200" y="100" text-anchor="middle" font-size="50">🍉</text>
+      <text x="200" y="150" text-anchor="middle" font-size="14" fill="#555" font-weight="bold">${item} fan!</text>
+      ${flower(60,190)} ${flower(350,195)}
+    </svg>`,
+
+  'bg-hot': () => `
+    <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="hotsky" cx="50%" cy="0%" r="100%">
+          <stop offset="0%" stop-color="#FFF176"/>
+          <stop offset="100%" stop-color="#FFCC80"/>
+        </radialGradient>
+      </defs>
+      <rect width="400" height="300" fill="url(#hotsky)"/>
+      <rect y="200" width="400" height="100" fill="#D4A017" opacity=".6"/>
+      <!-- BIG sun -->
+      <circle cx="200" cy="70" r="58" fill="#FF9800" class="sun-glow"/>
+      ${sunRays(200,70,58)}
+      <circle cx="200" cy="70" r="44" fill="#FFD54F"/>
+      <text x="200" y="82" text-anchor="middle" font-size="32">☀️</text>
+      <!-- heat waves -->
+      <text x="80"  y="155" font-size="28" fill="#FF7043" opacity=".5">~</text>
+      <text x="180" y="165" font-size="28" fill="#FF7043" opacity=".5">~</text>
+      <text x="290" y="150" font-size="28" fill="#FF7043" opacity=".5">~</text>
+      <!-- sweat drops -->
+      ${sweatDrop(110,175,'0s')} ${sweatDrop(280,170,'0.4s')} ${sweatDrop(200,180,'0.8s')}
+    </svg>`,
+
+  'bg-cool': () => `
+    <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+      <rect width="400" height="300" fill="#B3E5FC"/>
+      <rect y="185" width="400" height="115" fill="#81D4FA" opacity=".5"/>
+      ${cloud(60,40,1.1)} ${cloud(280,30,1.2)} ${cloud(170,70,.8)}
+      <!-- snowflakes / sparkles -->
+      <text x="60"  y="120" font-size="22" fill="#64B5F6" opacity=".7">❄️</text>
+      <text x="330" y="130" font-size="22" fill="#64B5F6" opacity=".7">❄️</text>
+      <text x="180" y="90"  font-size="16" fill="#90CAF9" opacity=".6">✦</text>
+      <!-- wind lines -->
+      <line x1="30"  y1="155" x2="140" y2="155" stroke="#90CAF9" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+      <line x1="20"  y1="170" x2="110" y2="170" stroke="#90CAF9" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+      <line x1="50"  y1="185" x2="130" y2="185" stroke="#90CAF9" stroke-width="2" stroke-linecap="round" opacity=".4"/>
+      <line x1="250" y1="150" x2="380" y2="150" stroke="#90CAF9" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+      <line x1="265" y1="165" x2="375" y2="165" stroke="#90CAF9" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+      <text x="175" y="175" font-size="26" fill="#0288D1" opacity=".8">💨 Cool! 💨</text>
+    </svg>`,
+
+  'bg-thanks': () => `
+    <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="warmsky" cx="50%" cy="40%" r="80%">
+          <stop offset="0%" stop-color="#FFF9C4"/>
+          <stop offset="100%" stop-color="#F8BBD0"/>
+        </radialGradient>
+      </defs>
+      <rect width="400" height="300" fill="url(#warmsky)"/>
+      <rect y="195" width="400" height="105" fill="#F48FB1" opacity=".4"/>
+      <!-- sparkles / hearts -->
+      <text x="55"  y="80"  font-size="24" opacity=".7">⭐</text>
+      <text x="325" y="70"  font-size="20" opacity=".7">⭐</text>
+      <text x="155" y="55"  font-size="18" opacity=".6">💛</text>
+      <text x="240" y="90"  font-size="18" opacity=".6">💗</text>
+      <text x="90"  y="130" font-size="16" opacity=".5">✨</text>
+      <text x="295" y="140" font-size="16" opacity=".5">✨</text>
+      ${cloud(180,45,.8)} ${cloud(70,65,.65)}
+      <!-- rainbow arc -->
+      <path d="M40 220 Q200 80 360 220" fill="none" stroke="#FF8FAB" stroke-width="6" opacity=".3"/>
+      <path d="M55 230 Q200 100 345 230" fill="none" stroke="#FFD54F" stroke-width="4" opacity=".3"/>
+      <text x="200" y="165" text-anchor="middle" font-size="30">🙏 Thank you!</text>
+    </svg>`
+};
+
+function sunRays(cx, cy, r) {
+  let s = '';
+  for(let i=0;i<8;i++){
+    const a = (i*45)*Math.PI/180;
+    const x1 = cx + Math.cos(a)*(r+4), y1 = cy + Math.sin(a)*(r+4);
+    const x2 = cx + Math.cos(a)*(r+18), y2 = cy + Math.sin(a)*(r+18);
+    s += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#FFD700" stroke-width="4" stroke-linecap="round" opacity=".9"/>`;
+  }
+  return s;
+}
+
+function cloud(x,y,s) {
+  return `<g transform="translate(${x},${y}) scale(${s})">
+    <ellipse cx="0"  cy="0" rx="30" ry="20" fill="white" opacity=".9"/>
+    <ellipse cx="28" cy="5" rx="24" ry="17" fill="white" opacity=".9"/>
+    <ellipse cx="-22" cy="5" rx="20" ry="15" fill="white" opacity=".9"/>
+  </g>`;
+}
+
+function flower(x,y) {
+  return `<g transform="translate(${x},${y})">
+    <circle cx="0" cy="-10" r="6" fill="#FF8FAB" opacity=".8"/>
+    <circle cx="7"  cy="-4"  r="6" fill="#FFAB40" opacity=".8"/>
+    <circle cx="7"  cy="4"   r="6" fill="#FF8FAB" opacity=".8"/>
+    <circle cx="0"  cy="10"  r="6" fill="#FFAB40" opacity=".8"/>
+    <circle cx="-7" cy="4"   r="6" fill="#FF8FAB" opacity=".8"/>
+    <circle cx="-7" cy="-4"  r="6" fill="#FFAB40" opacity=".8"/>
+    <circle cx="0"  cy="0"   r="6" fill="#FFD700"/>
+  </g>`;
+}
+
+function sweatDrop(x,y,delay) {
+  return `<ellipse cx="${x}" cy="${y}" rx="5" ry="8" fill="#64B5F6" class="sweat" style="animation-delay:${delay}"/>`;
+}
+
+// Character SVGs (reused from selection screen, scaled)
+function charSVG(type) {
+  if (type === 'boy') return `
+<svg viewBox="0 0 130 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+  <ellipse cx="65" cy="44" rx="32" ry="26" fill="#4A2C0A"/>
+  <ellipse cx="65" cy="58" rx="28" ry="26" fill="#FDDBB4"/>
+  <rect x="35" y="30" width="60" height="18" rx="10" fill="#4A2C0A"/>
+  <circle cx="55" cy="56" r="4.5" fill="#2C1A0A"/>
+  <circle cx="75" cy="56" r="4.5" fill="#2C1A0A"/>
+  <circle cx="56.5" cy="54.5" r="1.5" fill="white"/>
+  <circle cx="76.5" cy="54.5" r="1.5" fill="white"/>
+  <ellipse cx="48" cy="65" rx="6" ry="3.5" fill="#FFAAB8" opacity=".5"/>
+  <ellipse cx="82" cy="65" rx="6" ry="3.5" fill="#FFAAB8" opacity=".5"/>
+  <path d="M56 70 Q65 78 74 70" stroke="#C07050" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="37" cy="60" rx="6" ry="7" fill="#FDDBB4"/>
+  <ellipse cx="93" cy="60" rx="6" ry="7" fill="#FDDBB4"/>
+  <rect x="30" y="82" width="70" height="62" rx="14" fill="#5B8DEF"/>
+  <path d="M55 82 L65 95 L75 82" fill="white" opacity=".9"/>
+  <rect x="10" y="84" width="22" height="50" rx="11" fill="#5B8DEF"/>
+  <rect x="98" y="84" width="22" height="50" rx="11" fill="#5B8DEF"/>
+  <ellipse cx="21" cy="138" rx="11" ry="10" fill="#FDDBB4"/>
+  <ellipse cx="109" cy="138" rx="11" ry="10" fill="#FDDBB4"/>
+  <rect x="30" y="136" width="30" height="34" rx="10" fill="#3A5BA0"/>
+  <rect x="70" y="136" width="30" height="34" rx="10" fill="#3A5BA0"/>
+  <ellipse cx="45" cy="170" rx="17" ry="9" fill="#333"/>
+  <ellipse cx="85" cy="170" rx="17" ry="9" fill="#333"/>
+</svg>`;
+
+  return `
+<svg viewBox="0 0 130 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+  <ellipse cx="65" cy="44" rx="33" ry="27" fill="#8B3A00"/>
+  <ellipse cx="28" cy="52" rx="10" ry="20" fill="#8B3A00" transform="rotate(-15 28 52)"/>
+  <ellipse cx="102" cy="52" rx="10" ry="20" fill="#8B3A00" transform="rotate(15 102 52)"/>
+  <ellipse cx="33" cy="40" rx="9" ry="5" fill="#FF6B9D" transform="rotate(-20 33 40)"/>
+  <ellipse cx="97" cy="40" rx="9" ry="5" fill="#FF6B9D" transform="rotate(20 97 40)"/>
+  <ellipse cx="65" cy="59" rx="27" ry="25" fill="#FDDBB4"/>
+  <circle cx="55" cy="57" r="4.5" fill="#2C1A0A"/>
+  <circle cx="75" cy="57" r="4.5" fill="#2C1A0A"/>
+  <circle cx="56.5" cy="55.5" r="1.5" fill="white"/>
+  <circle cx="76.5" cy="55.5" r="1.5" fill="white"/>
+  <line x1="51" y1="53" x2="49" y2="50" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="55" y1="52" x2="54" y2="49" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="59" y1="53" x2="60" y2="50" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="71" y1="53" x2="70" y2="50" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="75" y1="52" x2="75" y2="49" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="79" y1="53" x2="81" y2="50" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+  <ellipse cx="47" cy="66" rx="6" ry="3.5" fill="#FFB6C1" opacity=".65"/>
+  <ellipse cx="83" cy="66" rx="6" ry="3.5" fill="#FFB6C1" opacity=".65"/>
+  <path d="M56 72 Q65 80 74 72" stroke="#C07050" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="38" cy="61" rx="6" ry="7" fill="#FDDBB4"/>
+  <ellipse cx="92" cy="61" rx="6" ry="7" fill="#FDDBB4"/>
+  <path d="M28 84 Q28 144 65 148 Q102 144 102 84 L93 80 L65 88 L37 80 Z" fill="#FF8FAB"/>
+  <rect x="37" y="79" width="56" height="22" rx="12" fill="#FF8FAB"/>
+  <path d="M48 83 Q55 90 65 87 Q75 90 82 83" stroke="white" stroke-width="2" fill="none"/>
+  <rect x="12" y="82" width="27" height="48" rx="13" fill="#FF8FAB"/>
+  <rect x="91" y="82" width="27" height="48" rx="13" fill="#FF8FAB"/>
+  <ellipse cx="25" cy="134" rx="12" ry="10" fill="#FDDBB4"/>
+  <ellipse cx="105" cy="134" rx="12" ry="10" fill="#FDDBB4"/>
+  <ellipse cx="48" cy="162" rx="16" ry="9" fill="#FF5092"/>
+  <ellipse cx="82" cy="162" rx="16" ry="9" fill="#FF5092"/>
+  <rect x="37" y="148" width="22" height="12" rx="5" fill="white"/>
+  <rect x="71" y="148" width="22" height="12" rx="5" fill="white"/>
+</svg>`;
+}
+
+function showScene(lineIdx) {
+  if (!scriptData) return;
+  const scene = document.getElementById('stage-scene');
+  const sceneBg = SCENES[Math.min(lineIdx, SCENES.length-1)];
+  const anim = SCENE_ANIMS[Math.min(lineIdx, SCENE_ANIMS.length-1)];
+
+  // Generate background
+  let bgHtml = '';
+  if (lineIdx === 0) bgHtml = sceneSVGs['bg-hello']();
+  else if (lineIdx === 1) bgHtml = sceneSVGs['bg-item'](itemName);
+  else if (lineIdx === 2) bgHtml = sceneSVGs['bg-hot']();
+  else if (lineIdx === 3) bgHtml = sceneSVGs['bg-cool']();
+  else bgHtml = sceneSVGs['bg-thanks']();
+
+  // Character with prop
+  let propHtml = '';
+  if (lineIdx >= 1 && lineIdx <= 3) {
+    // Holding fan
+    propHtml = `<div style="position:absolute;bottom:40%;left:55%;font-size:clamp(2.5rem,8vw,4rem);transform:rotate(-20deg);z-index:3;">🍃</div>`;
+  }
+
+  scene.innerHTML = bgHtml + propHtml + `
+    <div class="stage-char ${anim}" style="z-index:2">
+      ${charSVG(selectedChar)}
+    </div>`;
+}
+
+// ══════════════════════════════════
+// AUDIO
+// ══════════════════════════════════
+function getAudio() {
+  return stageMode === 'full'
+    ? document.getElementById('audio-bg')
+    : document.getElementById('audio-kara');
+}
+
+function stopAudio() {
+  isPlaying = false;
+  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+  const a = document.getElementById('audio-bg');
+  const b = document.getElementById('audio-kara');
+  a.pause(); b.pause();
+  updatePlayBtn();
+}
+
+function togglePlay() {
+  if (isPlaying) pausePlay();
+  else resumePlay();
+}
+
+function beginPlay() {
+  const audio = getAudio();
+  const src = stageMode === 'full' ? 'background.mp3' : 'karaoke.mp3';
+  if (audio.src.indexOf(src) === -1) audio.src = src;
+  audio.currentTime = 0;
+  audioPauseOffset = 0;
+  isPlaying = true;
+  audio.play().catch(() => {});
+  updatePlayBtn();
+  tick();
+}
+
+function pausePlay() {
+  const audio = getAudio();
+  audioPauseOffset = audio.currentTime;
+  audio.pause();
+  isPlaying = false;
+  if (animFrame) cancelAnimationFrame(animFrame);
+  updatePlayBtn();
+}
+
+function resumePlay() {
+  const audio = getAudio();
+  isPlaying = true;
+  audio.play().catch(() => {});
+  updatePlayBtn();
+  tick();
+}
+
+function restartStage() {
+  stopAudio();
+  currentLine = -1;
+  buildProgressDots();
+  showScene(0);
+  setLyricText('', false);
+  document.getElementById('lyric-fill').style.transform = 'scaleX(0)';
+  setTimeout(() => beginPlay(), 200);
+}
+
+function updatePlayBtn() {
+  document.getElementById('play-btn').textContent = isPlaying ? '⏸ 일시정지' : '▶ 재생';
+}
+
+// ══════════════════════════════════
+// TICK — drives lyric sync
+// ══════════════════════════════════
+function tick() {
+  if (!isPlaying) return;
+  const audio = getAudio();
+  const t = audio.currentTime;
+  const lines = scriptData.lines;
+  const totalDur = lines[lines.length-1].end;
+
+  // Check if audio ended / past last line
+  if (t >= totalDur || (audio.ended)) {
+    finishMode();
+    return;
+  }
+
+  // Find active line
+  let active = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (t >= lines[i].start && t < lines[i].end) { active = i; break; }
+  }
+
+  if (active !== currentLine) {
+    currentLine = active;
+    if (active >= 0) {
+      showScene(active);
+      updateDots(active);
+      const lineText = lines[active].text.replace('{item}', itemName);
+      setLyricText(lineText, stageMode === 'karaoke');
+    }
+  }
+
+  // Fill animation
+  if (active >= 0) {
+    const line = lines[active];
+    const progress = (t - line.start) / (line.end - line.start);
+    document.getElementById('lyric-fill').style.transform = `scaleX(${Math.min(progress, 1)})`;
+  }
+
+  animFrame = requestAnimationFrame(tick);
+}
+
+function finishMode() {
+  isPlaying = false;
+  if (animFrame) cancelAnimationFrame(animFrame);
+  document.getElementById('lyric-fill').style.transform = 'scaleX(1)';
+
+  if (stageMode === 'full') {
+    // Transition to karaoke mode
+    setTimeout(() => {
+      stageMode = 'karaoke';
+      document.getElementById('mode-badge').textContent = '🎤 노래방 모드';
+      document.getElementById('mode-badge').className = 'mode-badge karaoke';
+      document.getElementById('hint-btn').style.display = 'inline-flex';
+      currentLine = -1;
+      showScene(0);
+      setLyricText('', false);
+      document.getElementById('lyric-fill').style.transform = 'scaleX(0)';
+      beginPlay();
+    }, 800);
+  } else {
+    // Complete
+    setTimeout(() => showComplete(), 600);
+  }
+}
+
+function setLyricText(text, hidden) {
+  const el = document.getElementById('lyric-text');
+  el.textContent = text || '...';
+  el.className = 'lyric-text' + (hidden ? ' hidden-text' : '');
+  document.getElementById('lyric-fill').style.transform = 'scaleX(0)';
+}
+
+function updateDots(idx) {
+  document.querySelectorAll('.dot').forEach((d,i) => {
+    d.classList.toggle('active', i <= idx);
+  });
+}
+
+// ══════════════════════════════════
+// HINT (play bg.mp3 snippet)
+// ══════════════════════════════════
+function playHint() {
+  if (currentLine < 0 || !scriptData) return;
+  const line = scriptData.lines[currentLine];
+  const hint = document.getElementById('audio-bg');
+  const src = 'background.mp3';
+  if (hint.src.indexOf(src) === -1) hint.src = src;
+  hint.currentTime = line.start;
+  hint.play().catch(()=>{});
+  setTimeout(() => { if(!hint.paused) hint.pause(); }, (line.end - line.start) * 1000 * 0.6);
+}
+
+// ══════════════════════════════════
+// COMPLETE SCREEN
+// ══════════════════════════════════
+function showComplete() {
+  stopAudio();
+  const raw = (scriptData.sunoPrompt || 'A cheerful children\'s song about a {item} fan. Ukulele, glockenspiel, 60 BPM.')
+    .replace('{item}', itemName);
+  document.getElementById('suno-prompt-text').textContent = raw;
+  goTo('screen-complete');
+}
+
+function copyPrompt() {
+  const text = document.getElementById('suno-prompt-text').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      const orig = btn.textContent;
+      btn.textContent = '✅ 복사됨!';
+      setTimeout(() => btn.textContent = orig, 1800);
+    });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+}
+
+function openSuno() {
+  window.open('https://suno.com', '_blank');
+}
+
+function restartAll() {
+  stopAudio();
+  stageMode = 'full';
+  currentLine = -1;
+  document.getElementById('mode-badge').textContent = '🎵 전체 감상';
+  document.getElementById('mode-badge').className = 'mode-badge full';
+  document.getElementById('hint-btn').style.display = 'none';
+  goTo('screen-char');
+}
+</script>
+</body>
+</html>

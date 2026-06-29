@@ -1,0 +1,12 @@
+{
+  "week": "1주차",
+  "item": "watermelon",
+  "lines": [
+    { "text": "Hello!", "start": 0, "end": 3 },
+    { "text": "This is my {item} fan.", "start": 3, "end": 8 },
+    { "text": "The weather is hot in summer.", "start": 8, "end": 13 },
+    { "text": "Stay cool with my fan!", "start": 13, "end": 18 },
+    { "text": "Thank you.", "start": 18, "end": 22 }
+  ],
+  "sunoPrompt": "A cheerful, upbeat children's song about a {item} fan. Simple melody, easy to sing along, kindergarten style, ukulele and glockenspiel, bright and playful, 60 BPM."
+}
