@@ -727,7 +727,7 @@ function tick() {
     return;
   }
 
-  // Find active line
+  // 장면 전환: start/end 기준
   let active = -1;
   for (let i = 0; i < lines.length; i++) {
     if (t >= lines[i].start && t < lines[i].end) { active = i; break; }
@@ -743,10 +743,14 @@ function tick() {
     }
   }
 
-  // Fill animation
+  // 노래방 색 채우기: lyricStart/lyricEnd 기준
   if (active >= 0) {
     const line = lines[active];
-    const progress = (t - line.start) / (line.end - line.start);
+    const ls = line.lyricStart != null ? line.lyricStart : line.start;
+    const le = line.lyricEnd   != null ? line.lyricEnd   : line.end;
+    let progress = 0;
+    if (t >= le) progress = 1;
+    else if (t >= ls) progress = (t - ls) / (le - ls);
     document.getElementById('lyric-fill').style.transform = `scaleX(${Math.min(progress, 1)})`;
   }
 
