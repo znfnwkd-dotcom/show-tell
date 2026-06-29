@@ -146,24 +146,27 @@
   }
   .lyric-wrap {
     position: relative; width: 100%;
-    overflow: hidden; border-radius: 16px;
-    background: rgba(255,255,255,.18);
-    backdrop-filter: blur(6px);
+    overflow: hidden; border-radius: 8px;
+    background: rgba(0,0,0,.55);
     min-height: 64px;
     display: flex; align-items: center; justify-content: center;
   }
   .lyric-text {
     font-size: clamp(1.4rem, 5vw, 2.2rem); font-weight: 800;
-    position: relative; z-index: 2; padding: 14px 20px; text-align: center;
+    position: relative; z-index: 2; padding: 14px 24px; text-align: center;
     color: white; letter-spacing: .02em;
-    text-shadow: 0 2px 8px rgba(0,0,0,.4);
+    text-shadow:
+      -2px -2px 0 #000,
+       2px -2px 0 #000,
+      -2px  2px 0 #000,
+       2px  2px 0 #000;
   }
   .lyric-fill {
     position: absolute; inset: 0; z-index: 1;
-    background: linear-gradient(90deg, rgba(192,132,252,.7) 0%, rgba(224,187,255,.5) 100%);
+    background: rgba(192,132,252,.5);
     transform-origin: left; transform: scaleX(0);
     transition: transform .1s linear;
-    border-radius: 16px;
+    border-radius: 8px;
   }
 
   /* ── CONTROLS (overlay) ── */
