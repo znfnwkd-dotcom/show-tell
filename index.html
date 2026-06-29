@@ -205,12 +205,55 @@
 </head>
 <body>
 
-<!-- 시작 화면 제거됨 - 앱 열면 바로 스테이지로 시작 -->
+<!-- ══════════════════════════════════
+     SCREEN 1: START
+══════════════════════════════════ -->
+<div id="screen-start" class="screen active">
+  <h1 style="font-size:clamp(2.2rem,7vw,3.5rem);color:#7B4FD6;text-shadow:2px 3px 0 #E4C7FF;margin-bottom:8px;text-align:center;">🌟 Show & Tell</h1>
+  <p style="font-size:1.2rem;color:#bbb;margin-bottom:32px;">오늘도 멋지게 해보자!</p>
+  <div style="width:min(200px,40vw);margin-bottom:36px;">
+    <svg viewBox="0 0 130 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;filter:drop-shadow(0 8px 20px #FF8FAB55)">
+      <ellipse cx="65" cy="44" rx="33" ry="27" fill="#8B3A00"/>
+      <ellipse cx="28" cy="52" rx="10" ry="20" fill="#8B3A00" transform="rotate(-15 28 52)"/>
+      <ellipse cx="102" cy="52" rx="10" ry="20" fill="#8B3A00" transform="rotate(15 102 52)"/>
+      <ellipse cx="33" cy="40" rx="9" ry="5" fill="#FF6B9D" transform="rotate(-20 33 40)"/>
+      <ellipse cx="97" cy="40" rx="9" ry="5" fill="#FF6B9D" transform="rotate(20 97 40)"/>
+      <ellipse cx="65" cy="59" rx="27" ry="25" fill="#FDDBB4"/>
+      <circle cx="55" cy="57" r="4.5" fill="#2C1A0A"/>
+      <circle cx="75" cy="57" r="4.5" fill="#2C1A0A"/>
+      <circle cx="56.5" cy="55.5" r="1.5" fill="white"/>
+      <circle cx="76.5" cy="55.5" r="1.5" fill="white"/>
+      <line x1="51" y1="53" x2="49" y2="50" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="55" y1="52" x2="54" y2="49" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="59" y1="53" x2="60" y2="50" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="71" y1="53" x2="70" y2="50" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="75" y1="52" x2="75" y2="49" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="79" y1="53" x2="81" y2="50" stroke="#2C1A0A" stroke-width="1.5" stroke-linecap="round"/>
+      <ellipse cx="47" cy="66" rx="6" ry="3.5" fill="#FFB6C1" opacity=".65"/>
+      <ellipse cx="83" cy="66" rx="6" ry="3.5" fill="#FFB6C1" opacity=".65"/>
+      <path d="M56 72 Q65 80 74 72" stroke="#C07050" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="38" cy="61" rx="6" ry="7" fill="#FDDBB4"/>
+      <ellipse cx="92" cy="61" rx="6" ry="7" fill="#FDDBB4"/>
+      <path d="M28 84 Q28 144 65 148 Q102 144 102 84 L93 80 L65 88 L37 80 Z" fill="#FF8FAB"/>
+      <rect x="37" y="79" width="56" height="22" rx="12" fill="#FF8FAB"/>
+      <path d="M48 83 Q55 90 65 87 Q75 90 82 83" stroke="white" stroke-width="2" fill="none"/>
+      <rect x="12" y="82" width="27" height="48" rx="13" fill="#FF8FAB"/>
+      <rect x="91" y="82" width="27" height="48" rx="13" fill="#FF8FAB"/>
+      <ellipse cx="25" cy="134" rx="12" ry="10" fill="#FDDBB4"/>
+      <ellipse cx="105" cy="134" rx="12" ry="10" fill="#FDDBB4"/>
+      <ellipse cx="48" cy="162" rx="16" ry="9" fill="#FF5092"/>
+      <ellipse cx="82" cy="162" rx="16" ry="9" fill="#FF5092"/>
+      <rect x="37" y="148" width="22" height="12" rx="5" fill="white"/>
+      <rect x="71" y="148" width="22" height="12" rx="5" fill="white"/>
+    </svg>
+  </div>
+  <button class="btn btn-primary" style="font-size:2rem;padding:24px 60px;" onclick="goToStage()">▶ 시작하기!</button>
+</div>
 
 <!-- ══════════════════════════════════
      SCREEN 3 & 4: STAGE
 ══════════════════════════════════ -->
-<div id="screen-stage" class="screen active">
+<div id="screen-stage" class="screen">
   <!-- Scene area -->
   <div class="stage-scene" id="stage-scene">
     <!-- background SVG injected by JS -->
@@ -232,7 +275,7 @@
 
   <!-- Controls -->
   <div class="controls">
-    <button class="btn btn-gray btn-small" onclick="goTo('screen-char')" style="padding:14px 20px">🏠</button>
+    <button class="btn btn-gray btn-small" onclick="stopAudio();goTo('screen-start')" style="padding:14px 20px">🏠</button>
     <button class="btn btn-primary" id="play-btn" onclick="togglePlay()" style="min-width:130px">▶ 재생</button>
     <button class="btn btn-gray btn-small" onclick="restartStage()" style="padding:14px 20px">↺</button>
   </div>
@@ -326,13 +369,16 @@ function selectChar(c) {
 // ITEM INPUT
 // ══════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  init().then(() => {
-    buildStage();
-    buildProgressDots();
-    showScene(0);
-    setTimeout(() => beginPlay(), 600);
-  });
+  init();
 });
+
+function goToStage() {
+  buildStage();
+  buildProgressDots();
+  showScene(0);
+  goTo('screen-stage');
+  setTimeout(() => beginPlay(), 400);
+}
 
 function updatePreview() {
   const val = document.getElementById('item-input').value.trim() || 'watermelon';
@@ -795,12 +841,7 @@ function restartAll() {
   document.getElementById('mode-badge').textContent = '🎵 전체 감상';
   document.getElementById('mode-badge').className = 'mode-badge full';
   document.getElementById('hint-btn').style.display = 'none';
-  showScene(0);
-  setLyricText('', false);
-  document.getElementById('lyric-fill').style.transform = 'scaleX(0)';
-  buildProgressDots();
-  goTo('screen-stage');
-  setTimeout(() => beginPlay(), 400);
+  goTo('screen-start');
 }
 </script>
 </body>
