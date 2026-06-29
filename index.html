@@ -377,7 +377,7 @@ function goToStage(mode) {
   buildProgressDots();
   showScene(0);
   goTo('screen-stage');
-  setTimeout(() => beginPlay(), 400);
+  setTimeout(() => beginPlay(), 1000);
 }
 
 function updatePreview() {
@@ -391,7 +391,7 @@ function startStage() {
   buildStage();
   goTo('screen-stage');
   setupProgressDots();
-  setTimeout(() => beginPlay(), 400);
+  setTimeout(() => beginPlay(), 1000);
 }
 
 // ══════════════════════════════════
